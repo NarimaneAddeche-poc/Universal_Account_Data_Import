@@ -10,17 +10,17 @@ import db_insertion_functions
 
 
 def traitement_befor_insertion(type, country_id, base_file, matched_file, result_file):
-    dfBase = pd.read_excel(base_file,'Sheet3')
-    dfMatched = pd.read_excel(matched_file,'Sheet3') 
-    dfResult = pd.read_excel(result_file,'Sheet3')
+    dfBase = pd.read_excel(base_file,'Full list Sanisphere pharmacies')
+    dfMatched = pd.read_excel(matched_file,'Sheet1') 
+    dfResult = pd.read_excel(result_file,'Sheet1')
 
-    ####### data-sources#####
+    ####### in  data-sources table insertion  #####
     data_source_values=([(Path(base_file).stem,country_id,current_dateTime,current_dateTime,),
                         (Path(matched_file).stem,country_id,current_dateTime,current_dateTime,)])
-    #db_insertion_functions.data_source_insertion(data_source_values)
+    db_insertion_functions.data_source_insertion(data_source_values)
 
 
-    ###### matched items insertion
+    ###### matched items in data_source_items table insertion
     matched_data_source_id=db_insertion_functions.get_matched_data_source_id(matched_file)
     matched_list=[]
     for index, row in dfMatched.iterrows():
@@ -31,9 +31,9 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
         district=str(row['District']).replace("'","'"+"'")
         value=(matched_data_source_id,code,name,address,city,district,current_dateTime,current_dateTime)
         matched_list.append(value)
-    #db_insertion_functions.matched_items_insertion(matched_list)
+    db_insertion_functions.matched_items_insertion(matched_list)
 
-    ######## base items insertion 
+    ######## base items in data_source_items table insertion 
     base_data_source_id=db_insertion_functions.get_base_data_source_id(base_file)
     base_list=[]
     list_of_codes=[]
@@ -46,9 +46,9 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
         value=(base_data_source_id,code,name,address,city,district,current_dateTime,current_dateTime)
         base_list.append(value)
         list_of_codes.append(value[1])
-    #db_insertion_functions.base_data_items_source_insertion(base_list)
+    db_insertion_functions.base_data_items_source_insertion(base_list)
 
-    ######### matching_attempts insertion
+    ######### in matching_attempts table insertion
     type_id=db_insertion_functions.get_matching_type(type)
     
     try:
@@ -73,21 +73,20 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
         number_of_manual_check_required=0
     number_of_wrong_matching_decisions=0
     matching=(type_id,base_data_source_id,matched_data_source_id,number_of_items_in_base_list,number_of_items_in_matched_list,number_matches_found,number_of_not_matches,number_of_manual_check_required,number_of_wrong_matching_decisions,current_dateTime,current_dateTime,)
-    #db_insertion_functions.matching_attempts_insertion(matching)
+    db_insertion_functions.matching_attempts_insertion(matching)
 
     matching_attempts_id=db_insertion_functions.get_matching_attempts_id(base_data_source_id,matched_data_source_id)
 
-    ####### base_items insertion
+    ####### in base_items table insertion
     data_values=[]
     for element in list_of_codes:
         list=(matching_attempts_id,element,current_dateTime,current_dateTime)
         data_values.append(list)
-    #db_insertion_functions.base_items_insertion(data_values)
+    db_insertion_functions.base_items_insertion(data_values)
 
-    ###### possible_matched items
+    ###### in possible_matched_items table insertion
     data_values_possible=[]
     for index, row in dfResult.iterrows():
-        ####### if not null do that else insert without matching_code and put 0 in similarity ########
         if pd.isnull(dfResult.loc[index, 'matching_id']):
             
             matched_item_code='Null'
@@ -129,7 +128,7 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
             matching_verification_method=1
             list_possible=(matched_item_code,base_items_id,matching_method,similarity,result,matching_verification_method,current_dateTime,current_dateTime)
             data_values_possible.append(list_possible)
-    #db_insertion_functions.possible_matched_items_insertion(data_values_possible)
+    db_insertion_functions.possible_matched_items_insertion(data_values_possible)
 
     if type=='monthly':
 
@@ -144,16 +143,19 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
                 print (city_id)
                 district_id=db_insertion_functions.get_district_id(country_id,city_id,district_name)
                 list_location=(name,country_id,city_id,district_id,current_dateTime,current_dateTime)
+                ###### insertion in universal_account_location
                 db_insertion_functions.universal_account_location_insertion(list_location)
                 provided_address=provided_facility_image=provided_registarion_no=verified_facility_image=verified_phone=verified_email=has_valid_document=has_delivered_orders=has_registred_users=physically_visited=user_accessed_poc= False
                 from_trusted=[]
                 list_verification=(provided_address,provided_facility_image,provided_registarion_no,verified_facility_image,verified_phone,verified_email,has_valid_document,has_delivered_orders,has_registred_users,physically_visited,user_accessed_poc,from_trusted,current_dateTime,current_dateTime)
+                ###### insertion in universal_account_verification
                 db_insertion_functions.universal_account_verification_insertion(list_verification)
                 universal_account_code=str(row['base_id'])
                 universal_account_name=str(row['base_name'])
                 universal_location_id=db_insertion_functions.get_location_id()
                 universal_verification_id=db_insertion_functions.get_universal_account_verification_id()
                 list_UA=(universal_account_code,universal_account_name,universal_location_id,universal_verification_id,current_dateTime,current_dateTime)
+                ###### insertion in universal_accounts
                 db_insertion_functions.universal_account_insertion(list_UA)
             if matching_result=='Surely Matched':
                 universal_account_code=str(row['base_id'])
@@ -162,6 +164,7 @@ def traitement_befor_insertion(type, country_id, base_file, matched_file, result
                 data_source_id=int(matched_data_source_id)
                 matched_item_code=int(row['matching_id'])
                 liste_UACM=(universal_account_id,data_source_id,matched_item_code,current_dateTime,current_dateTime)
+                ###### insertion in universal_account_code_mapping
                 db_insertion_functions.universal_account_code_mapping_insertion(liste_UACM)
     
 
@@ -187,8 +190,6 @@ if __name__ == "__main__":
     ##################################################
 
 
-
-    ############# Connection to postgre DB ###########
    
     traitement_befor_insertion(type,country_id,base_file,matched_file,result_file)
 

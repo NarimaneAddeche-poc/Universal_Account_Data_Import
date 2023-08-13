@@ -20,7 +20,6 @@ cursor = conn.cursor()
   
 
 def data_source_insertion(data_source_values):
-    
     sql=""" INSERT INTO data_sources (name,country_id,created_at,updated_at) VALUES (%s,%s,%s,%s)"""
     cursor.executemany(sql,data_source_values)
     conn.commit()
@@ -28,28 +27,21 @@ def data_source_insertion(data_source_values):
 def get_matched_data_source_id(matched_file):
     file_name=Path(matched_file).stem
     data=(file_name,)
-
     select_query="select id from data_sources where name = %s limit 1 "
     cursor.execute(select_query,data)
     matched_data_source_id=cursor.fetchone()[0]
     return (matched_data_source_id)
 
 def matched_items_insertion(matched_list):
-
-    
-
     sql=""" INSERT INTO data_source_items (data_source_id, data_source_code, name, address,city,district,created_at,updated_at) 
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-
     cursor.executemany(sql,matched_list)
-
     conn.commit()
 
 def get_base_data_source_id(base_file):
     base_list=[]
     file_name=Path(base_file).stem
     data=(file_name,)
-
     select_query="select id from data_sources where name = %s limit 1 "
     cursor.execute(select_query,data)
     base_data_source_id=cursor.fetchone()[0]
@@ -57,12 +49,9 @@ def get_base_data_source_id(base_file):
     ############################################################
 
 def base_data_items_source_insertion(base_list):
-
     sql=""" INSERT INTO data_source_items (data_source_id, data_source_code, name, address,city,district,created_at,updated_at) 
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-
     cursor.executemany(sql,base_list)
-
     conn.commit()
 
 def get_base_items_id(data):
@@ -80,7 +69,6 @@ def get_matching_type(type):
     return(type_id)
 
 def matching_attempts_insertion(matching):
-    
     sql=""" INSERT INTO matching_attempts (matching_attempt_types_id, base_data_source_id, matched_data_source_id, number_of_items_in_base_list,number_of_items_in_matching_list,number_of_matches_found,number_of_not_matches,number_of_human_check_required,number_of_wrong_matching_decisions,created_at,updated_at) 
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
     cursor.execute(sql,matching)
@@ -99,15 +87,13 @@ def base_items_insertion(data_values):
     #print(data_values)
     conn.commit()
 
-def possible_matched_items_insertion(data_values_possible):
-    
+def possible_matched_items_insertion(data_values_possible): 
     sql=""" INSERT INTO possible_matched_items(matched_item_code,base_items_id,matching_methods,similarity,result,matching_verification_method,created_at,updated_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
     cursor.executemany(sql,data_values_possible)
     #print(data_values_possible)
     conn.commit()
 
 def universal_account_location_insertion(record_to_insert):
-    
     sql=""" INSERT INTO universal_account_location (name,country_id,city_id,district_id,created_at,updated_at) VALUES (%s,%s,%s,%s,%s,%s)"""
     cursor.execute(sql,record_to_insert)
     conn.commit()
